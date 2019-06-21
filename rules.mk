@@ -31,7 +31,7 @@
 # Second expansion/secondary not set, add this if you need them.
 
 BUILD_DIR ?= bin
-OPT ?= -Os
+OPT ?= -O0
 CSTD ?= -std=c99
 
 # Be silent per default, but 'make V=1' will show all compiler calls.
@@ -48,7 +48,9 @@ CC	= $(PREFIX)gcc
 LD	= $(PREFIX)gcc
 OBJCOPY	= $(PREFIX)objcopy
 OBJDUMP	= $(PREFIX)objdump
+SIZE    = $(PREFIX)size
 OOCD	?= openocd
+DEBUG		:= -ggdb3
 
 OPENCM3_INC = $(OPENCM3_DIR)/include
 
@@ -82,6 +84,7 @@ TGT_LDFLAGS += -T$(LDSCRIPT) -L$(OPENCM3_DIR)/lib -nostartfiles
 TGT_LDFLAGS += $(ARCH_FLAGS)
 TGT_LDFLAGS += -specs=nano.specs
 TGT_LDFLAGS += -Wl,--gc-sections
+TGT_LDFLAGS += -u _printf_float
 # OPTIONAL
 #TGT_LDFLAGS += -Wl,-Map=$(PROJECT).map
 ifeq ($(V),99)
@@ -90,11 +93,11 @@ endif
 
 # Linker script generator fills this in for us.
 ifeq (,$(DEVICE))
-LDLIBS += -l$(OPENCM3_LIB)
+LDLIBS += -l$(OPENCM3_LIB) 
 endif
 # nosys is only in newer gcc-arm-embedded...
 #LDLIBS += -specs=nosys.specs
-LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+LDLIBS += -Wl,--start-group -lc -lm -lgcc -lnosys -Wl,--end-group -larm_cortexM3l_math -L ../CMSIS/Lib/GCC 
 
 # Burn in legacy hell fortran modula pascal yacc idontevenwat
 .SUFFIXES:
@@ -107,9 +110,10 @@ LDLIBS += -Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
 %: s.%
 %: SCCS/s.%
 
-all: $(PROJECT).elf $(PROJECT).bin
+all: $(PROJECT).elf $(PROJECT).bin 
 flash: $(PROJECT).flash
-
+size: 
+	$(SIZE) $(PROJECT).elf
 # error if not using linker script generator
 ifeq (,$(DEVICE))
 $(LDSCRIPT):
