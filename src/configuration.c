@@ -18,11 +18,11 @@ void load_config(void)
     if(c.config_stored != 0x5555)
     {
         //non-initialized flash found. write defaults
-        c.steps_per_mm = 755.91;
+        c.steps_per_mm = 800;
         c.spindle_ppr = 3200;
         c.step_len = 10;
         c.invert_dir = 1;
-        c.max_speed = 100;
+        c.max_speed = 20;
         c.max_accel=500;
         c.max_stepgen_accel = 700;
         c.config_stored = 0x5555;

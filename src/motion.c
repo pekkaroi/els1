@@ -28,6 +28,33 @@ volatile int32_t follow_target;
 volatile float max_error; //debug
 
 
+//RPM estimator filter
+#define IIR_ORDER     4
+#define IIR_NUMSTAGES (IIR_ORDER/2)
+
+static float32_t m_biquad_state[IIR_ORDER];
+static float32_t m_biquad_coeffs[5*IIR_NUMSTAGES] =
+{
+    2.4136e-08,
+    4.8272e-08,
+    2.4136e-08,
+    1.9540e+00,
+   -9.5462e-01,
+    1.0000e+00,
+    2.0000e+00,
+    1.0000e+00,
+    1.9803e+00,
+   -9.8095e-01
+};
+
+arm_biquad_cascade_df2T_instance_f32 const iir_inst =
+{
+  IIR_ORDER/2,
+  m_biquad_state,
+  m_biquad_coeffs
+};
+
+
 
 volatile float spindle_speed; //rev per SECOND!
 filter1Type* filt;
@@ -63,9 +90,10 @@ void get_spindle_position()
 void rpm_estimator()
 {
     float inst_speed = ((float)(spindle_count-spindle_prev_count))/c.spindle_ppr*LOOP_FREQ;
-    filter1_writeInput(filt, inst_speed);
+    arm_biquad_cascade_df2T_f32(&iir_inst, &inst_speed, &spindle_speed, 1);
+    //filter1_writeInput(filt, inst_speed);
     spindle_prev_count = spindle_count;
-    spindle_speed = filter1_readOutput(filt);
+    //spindle_speed = filter1_readOutput(filt);
 
 }
 void start_acceleration()

@@ -16,7 +16,7 @@ char usartBuf[USART_BUF_LEN];
 char outbuf[USART_BUF_LEN];
 uint8_t usartCtr;
 
-
+volatile uint8_t config_requested;
 
 
 
@@ -64,8 +64,28 @@ void dma1_channel4_isr(void)
 
 void prepare_status_package()
 {
-    int cnt = sprintf(outbuf, "%d, %d, %li, %.4f, %.4f, %.4f, %li\n", mode, status, m1.pos_accu, mm_per_revolution, operation_length, spindle_speed, reference_pos);
-    dma_write(outbuf, cnt);
+    int i, cnt;
+    if(!config_requested)
+    {
+        outbuf[0] = 0x01; //type is status
+        cnt = sprintf(outbuf+1, "%d, %d, %li, %.4f, %.4f, %.4f, %li\n", mode, status, m1.pos_accu, mm_per_revolution, operation_length, spindle_speed, reference_pos);
+        dma_write(outbuf, cnt+1);
+        return;
+    }
+    else
+    {
+        outbuf[0] = 0x02;
+        uint8_t *ptr = &c;
+        for (i = 1; i < 1+sizeof(c); i++)
+        {
+                outbuf[i] = *(ptr+i);
+        }
+        outbuf[sizeof(c)+1] = 0xFF;
+        outbuf[sizeof(c)+2] = 0xFF;
+        outbuf[sizeof(c)+3] = 0xFF;
+        dma_write(outbuf, sizeof(c)+4);
+        config_requested = 0;
+    }
 
 }
 
@@ -208,7 +228,10 @@ void handleUsart()
             return;
         index_count--;
     }
-
+    if(!strcmp(ptr, "GET_CONFIG"))
+    {
+        config_requested = 1;
+    }
 
 }
 void usart_setup(void)
@@ -216,6 +239,7 @@ void usart_setup(void)
 
     usartCtr=0;
     transfered = 1;
+    config_requested = 0;
     /* Enable the USART1 interrupt. */
     nvic_set_priority(NVIC_USART1_IRQ, 4);
 	nvic_enable_irq(NVIC_USART1_IRQ);
