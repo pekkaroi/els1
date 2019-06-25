@@ -3,7 +3,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/timer.h>
-
 #include <libopencm3/stm32/exti.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,13 +11,9 @@
 #include "configuration.h"
 #include "motor.h"
 #include "motion.h"
-
 #include "types.h"
 #include "trapez.h"
 #include "usart.h"
-
-
-
 
 volatile motion_status_t status;
 motor m1;
@@ -32,8 +27,6 @@ volatile float operation_length; //mm.
 volatile int32_t reference_pos; //start of operation point on threading.
 
 volatile int transfered;
-
-
 
 /* Set STM32 to 72 MHz. */
 static void clock_setup(void)
@@ -49,13 +42,6 @@ static void clock_setup(void)
 }
 
 
-static void gpio_setup(void)
-{
-	/* Set GPIOC12 to 'output push-pull'. */
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO12);
-
-}
 static void timer_setup(void)
 {
 
@@ -85,8 +71,6 @@ static void timer_setup(void)
     nvic_enable_irq(NVIC_TIM3_IRQ);
     timer_enable_irq(TIM3, TIM_DIER_UIE);
 
-
-
 }
 
 int main(void)
@@ -97,16 +81,13 @@ int main(void)
     status = IDLE;
     mode = THREADING;
     error_state = 0;
-
 	clock_setup();
-
-	gpio_setup();
     timer_setup();
     usart_setup();
     init_motor();
 
     reference_pos = 50;
-    mm_per_revolution = 2;
+    mm_per_revolution = 0.1;
     operation_length = 50.0;
 
     for (i = 0; i < 8000; i++)
@@ -115,8 +96,7 @@ int main(void)
 
     while (1) {
         //printf("motor pos: %d\n\r", (int)(spindle_count));
-        for (i = 0; i < 800000; i++)
-        __asm__("nop");
+
         if(transfered)
             prepare_status_package();
 	}

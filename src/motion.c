@@ -3,17 +3,16 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/timer.h>
+#include <arm_math.h>
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "motor.h"
-
 #include "motion.h"
-
-#include "filter.h"
 #include "types.h"
 #include "trapez.h"
 #include "globals.h"
+
 
 volatile int32_t spindle_count;
 volatile int16_t spindle_relative_pos;
@@ -35,16 +34,16 @@ volatile float max_error; //debug
 static float32_t m_biquad_state[IIR_ORDER];
 static float32_t m_biquad_coeffs[5*IIR_NUMSTAGES] =
 {
-    2.4136e-08,
-    4.8272e-08,
-    2.4136e-08,
-    1.9540e+00,
-   -9.5462e-01,
-    1.0000e+00,
-    2.0000e+00,
-    1.0000e+00,
-    1.9803e+00,
-   -9.8095e-01
+   9.6614e-11
+   1.9323e-10
+   9.6614e-11
+   1.9884e+00
+  -9.8846e-01
+   1.0000e+00
+   2.0000e+00
+   1.0000e+00
+   1.9952e+00
+  -9.9520e-01
 };
 
 arm_biquad_cascade_df2T_instance_f32 const iir_inst =
@@ -57,7 +56,7 @@ arm_biquad_cascade_df2T_instance_f32 const iir_inst =
 
 
 volatile float spindle_speed; //rev per SECOND!
-filter1Type* filt;
+
 
 float alpha;
 void init_motion()
@@ -67,7 +66,7 @@ void init_motion()
     spindle_prev_count = 0;
     spindle_relative_pos = 0;
     spindle_speed = 0.0;
-    filt = filter1_create();
+
 }
 void get_spindle_position()
 {
@@ -91,18 +90,16 @@ void rpm_estimator()
 {
     float inst_speed = ((float)(spindle_count-spindle_prev_count))/c.spindle_ppr*LOOP_FREQ;
     arm_biquad_cascade_df2T_f32(&iir_inst, &inst_speed, &spindle_speed, 1);
-    //filter1_writeInput(filt, inst_speed);
     spindle_prev_count = spindle_count;
-    //spindle_speed = filter1_readOutput(filt);
-
 }
+
 void start_acceleration()
 {
     status = PENDING;
     float target_speed = spindle_speed * mm_per_revolution;
     if(target_speed > c.max_speed*0.8)
     {
-        printf("Too high speed required");
+//        printf("Too high speed required");
         RAISE_ERROR(ERROR_TOO_HIGH_SPEED_REQUIRED)
     }
     acceleration_start_point = m1.pos_accu;
@@ -111,7 +108,7 @@ void start_acceleration()
     float acceleration = 0.5*target_speed*target_speed/accel_distance;
     if (acceleration > c.max_accel*0.8)
     {
-        printf("Too high acceleration required");
+//        printf("Too high acceleration required");
     }
 
     float required_time = target_speed/acceleration;
