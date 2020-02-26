@@ -2,7 +2,7 @@ PROJECT = els
 BUILD_DIR = bin
 
 SHARED_DIR = ../CMSIS/DSP/Include ../CMSIS/Core/Include
-CFILES = main.c motor.c filter.c trapez.c usart.c motion.c configuration.c
+CFILES = main.c motor.c trapez.c usart.c motion.c configuration.c
 
 DEVICE=stm32f103cb
 OOCD_FILE = /home/pekka/stlink.cfg
