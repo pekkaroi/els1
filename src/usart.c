@@ -68,8 +68,8 @@ void prepare_status_package()
     if(!config_requested)
     {
         outbuf[0] = 0x01; //type is status
-        cnt = sprintf(outbuf+1, "%d, %d, %li, %.4f, %.4f, %.4f, %li\n", mode, status, m1.pos_accu, mm_per_revolution, operation_length, spindle_speed, reference_pos);
-        dma_write(outbuf, cnt+1);
+        cnt = sprintf(outbuf, "%d, %d, %li, %.4f, %.4f, %.4f, %li\n", mode, status, m1.pos_accu, mm_per_revolution, operation_length, spindle_speed, reference_pos);
+        dma_write(outbuf, cnt);
         return;
     }
     else

@@ -15,17 +15,17 @@ void load_config(void)
 {
     //load configuration from flash
     flash_read_data(FLASH_OPERATION_ADDRESS, sizeof(c), &c);
-    if(c.config_stored != 0x5555)
+    if(c.config_stored != 0xAAAA)
     {
         //non-initialized flash found. write defaults
         c.steps_per_mm = 800;
-        c.spindle_ppr = 3200;
+        c.spindle_ppr = 4800;
         c.step_len = 10;
         c.invert_dir = 1;
         c.max_speed = 20;
         c.max_accel=500;
         c.max_stepgen_accel = 700;
-        c.config_stored = 0x5555;
+        c.config_stored = 0xAAAA;
         flash_program_data(FLASH_OPERATION_ADDRESS, &c, sizeof(c));
     }
 
