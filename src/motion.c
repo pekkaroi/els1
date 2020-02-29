@@ -5,12 +5,12 @@
 #include <libopencm3/stm32/timer.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <arm_math.h>
 #include "motor.h"
 
 #include "motion.h"
 
-#include "filter.h"
+//#include "filter.h"
 #include "types.h"
 #include "trapez.h"
 #include "globals.h"
@@ -57,7 +57,7 @@ arm_biquad_cascade_df2T_instance_f32 const iir_inst =
 
 
 volatile float spindle_speed; //rev per SECOND!
-filter1Type* filt;
+//filter1Type* filt;
 
 float alpha;
 void init_motion()
@@ -67,7 +67,7 @@ void init_motion()
     spindle_prev_count = 0;
     spindle_relative_pos = 0;
     spindle_speed = 0.0;
-    filt = filter1_create();
+    //filt = filter1_create();
 }
 void get_spindle_position()
 {
