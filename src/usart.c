@@ -191,6 +191,19 @@ void handleUsart()
 
 
     }
+    if(!strcmp(ptr, "JOG"))
+    {
+        if(status != IDLE)
+            return;
+        ptr = strtok(NULL, d);
+        if(ptr != NULL)
+        {
+            m1.pos_target += atoi(ptr)*0.01f*c.steps_per_mm;
+            return;
+        }
+
+
+    }
     if(!strcmp(ptr, "START"))
     {
         if(status != IDLE)
